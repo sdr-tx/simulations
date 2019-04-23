@@ -1,0 +1,21 @@
+# Ignore everything
+/*
+
+
+# But not these files...
+!/.gitignore
+!/*.m
+!/*.fda
+
+
+# ...even if they are in subdirectories
+!/src
+/src/*
+!/src/*.vhd
+
+!/tb
+/tb/*
+!/tb/*.vhd
+
+
+
