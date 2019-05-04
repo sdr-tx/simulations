@@ -6,6 +6,7 @@
 !/.gitignore
 !/*.m
 !/*.fda
+!/AH/
 
 
 # ...even if they are in subdirectories
