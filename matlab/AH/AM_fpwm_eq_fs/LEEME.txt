@@ -1,0 +1,11 @@
+
+Primera simulación de AM generado con PWM:
+
+resultado exitoso.
+
+
+
+Por realizar:
+
+	- ver como reacciona el sistema cambiando la cantidad de ciclos de pwm por muestra
+	- ver como reacciona cambiando la cantidad de niveles de la señal
