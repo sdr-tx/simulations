@@ -1,6 +1,6 @@
-clc, clear, close all
+clc, , close all
 %%
-% genero 5 ciclos por símbolo
+% genero 5 ciclos por sï¿½mbolo
 fase1 = 0;
 fase2 = 0.25;
 fase3 = 0.5;
@@ -16,7 +16,7 @@ t = 0: dt: 4*ncyc*Tpwm-dt;
 duty = 0.5;
 
 
-pwm1 = cuadrada_con_desfasaje(ncyc,1,fase1,duty,fpwm,fs);
+pwm1 = cuadrada_con_desfasaje(ncyc,1,fase1,0.6,fpwm,fs);
 pwm2 = cuadrada_con_desfasaje(ncyc,1,fase2,duty,fpwm,fs);
 pwm3 = cuadrada_con_desfasaje(ncyc,1,fase3,duty,fpwm,fs);
 pwm4 = cuadrada_con_desfasaje(ncyc,1,fase4,duty,fpwm,fs);
@@ -61,3 +61,27 @@ linkaxes([h1,h2],'x');
 I = filtered_signal .* cos(2*pi*fpwm*t);
 Q = filtered_signal .* sin(2*pi*fpwm*t);
 plot(t,I,t,Q)
+
+
+%% DEMODULATION
+
+i_filtered = filter(Num, 1, I);
+q_filtered = filter(Num, 1, Q);
+
+iq = (i_filtered) + 1i * (q_filtered);
+% message = pskdemod(iq, 4);
+message = qamdemod(iq, 8);
+
+
+%% PLOT
+figure(3);
+subplot(121);   plot(t, i_filtered);        title("i in time");
+subplot(122);   plot(t, q_filtered);        title("q in time");
+
+scatterplot(iq);        title("i+q");
+scatterplot(message);	title("message");
+
+figure(4);
+subplot(121);   plot(message, 'linewidth', 2);         title("message in time");
+subplot(122);   histogram(message);    title("message histogram");
+
