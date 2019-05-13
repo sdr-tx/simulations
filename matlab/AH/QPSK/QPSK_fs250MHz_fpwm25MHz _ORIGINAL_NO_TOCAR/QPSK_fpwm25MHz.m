@@ -96,7 +96,7 @@ h1 = subplot(211), plot(t,I_FIR,t,Q_FIR), grid, title('I Q FIR sin LPF')
 
 I_IIR = signal_filtered_IIR .* cos(2*pi*fpwm*t);
 Q_IIR = signal_filtered_IIR .* sin(2*pi*fpwm*t);
-h2 = subplot(212), plot(t,I_FIR,t,Q_FIR), grid, title('I Q IIR sin LPF')
+h2 = subplot(212), plot(t,I_IIR,t,Q_IIR), grid, title('I Q IIR sin LPF')
 
 linkaxes([h1 h2],'x')
 
@@ -130,7 +130,7 @@ scatterplot(iq_IIR);        title('I+Q IIR');
 
 figure;
 subplot(121);   plot(t,message_FIR,'linewidth', 2); title('Mensaje en tiempo FIR');
-subplot(122);   plot(t,message_FIR,'linewidth', 2); title('Mensaje en tiempo IIR');
+subplot(122);   plot(t,message_IIR,'linewidth', 2); title('Mensaje en tiempo IIR');
 
 subplot(121); hist(message_FIR);    title('Histograma FIR');
-subplot(122); hist(message_FIR);    title('Histograma IIR');
+subplot(122); hist(message_IIR);    title('Histograma IIR');
