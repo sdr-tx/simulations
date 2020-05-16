@@ -17,7 +17,7 @@ tic
 %%  Generación de la señales en tiempo y filtrado
 
 %Frecuencia de muestreo (250MHz)
-fs = 250e6;     dt = 1/fs;
+fs = 2500e6;     dt = 1/fs;
 
 %Frecuencia de PWM (25MHz, fs/10)
 fpwm = 25e6; Tpwm = 1/fpwm;
@@ -27,6 +27,9 @@ fase1 = 0;
 fase2 = -0.25;
 fase3 = -0.5;
 fase4 = -0.75;
+
+duty1 = 0.5;
+duty2 = 0.25;
 
 %Cantidad de ciclos de cada PWM
 ncyc = 100;
@@ -44,16 +47,22 @@ duty = 0.5;
 %Genero los nsym de PWM:
 %La función recibe CantidadDeCiclos, Amplitud, Fase, Duty, Frecuencia de
 %PWM y Frecuencia de sampleo
-pwm1 = cuadrada_con_desfasaje(ncyc,1,fase1,duty,fpwm,fs);
-pwm2 = cuadrada_con_desfasaje(ncyc,1,fase2,duty,fpwm,fs);
-pwm3 = cuadrada_con_desfasaje(ncyc,1,fase3,duty,fpwm,fs);
-pwm4 = cuadrada_con_desfasaje(ncyc,1,fase4,duty,fpwm,fs);
+pwm1 = cuadrada_con_desfasaje(ncyc,1,fase1,duty1,fpwm,fs);
+pwm2 = cuadrada_con_desfasaje(ncyc,1,fase2,duty1,fpwm,fs);
+pwm3 = cuadrada_con_desfasaje(ncyc,1,fase3,duty1,fpwm,fs);
+pwm4 = cuadrada_con_desfasaje(ncyc,1,fase4,duty1,fpwm,fs);
+pwm5 = cuadrada_con_desfasaje(ncyc,1,fase1,duty2,fpwm,fs);
+pwm6 = cuadrada_con_desfasaje(ncyc,1,fase2,duty2,fpwm,fs);
+pwm7 = cuadrada_con_desfasaje(ncyc,1,fase3,duty2,fpwm,fs);
+pwm8 = cuadrada_con_desfasaje(ncyc,1,fase4,duty2,fpwm,fs);
 
 %Señal final: concatenación de las PWM
-signal = [pwm1 pwm3 pwm2 pwm4 pwm1 pwm2 pwm3 pwm4];
+
+signal = [pwm1 pwm5 pwm2 pwm6 pwm3 pwm7 pwm4 pwm8];
 
 figure('name','Señales temporales')
 plot(t, signal); ylim([-0.5 1.5]); grid; title('Señal temporal')
+
 
 
 %% Filtrado
@@ -62,7 +71,7 @@ plot(t, signal); ylim([-0.5 1.5]); grid; title('Señal temporal')
 load('QPSK_BPF_FIR_fp28MHz_fc50MHz_at60dB.mat');
 load('QPSK_BPF_IIR_fp28MHz_fc50MHz_at60dB.mat');
 
-signal_filtered_FIR = filter(BPF_FIR,signal);
+signal_filtered_FIR = filter(BPF,signal);
 signal_filtered_IIR = filter(BPF_IIR,signal);
 
 figure('name','Señales temporales')
@@ -85,7 +94,11 @@ signal_spect_IIR = abs(fft(signal_filtered_IIR)) / length(signal);
 figure('name','Espectros')
 h1=subplot(311), plot(f, 2*signal_spect(1:length(signal_spect)/2+1)); title('Signal Spectrum'),grid
 h2=subplot(312), plot(f, 2*signal_spect_FIR(1:length(signal_spect)/2+1)); title('Signal Spectrum FIR'),grid
-h3=subplot(313), plot(f, 2*signal_spect_IIR(1:length(signal_spect)/2+1)); title('Signal Spectrum IIR'),grid
+[h, w] = freqz(BPF, length(t));
+w = w(1:length(signal_spect)/2+1);
+h3=subplot(313), plot(w * fs/2, abs(h(1:length(signal_spect)/2+1))); title('filter'),grid
+
+
 linkaxes([h1,h2,h3],'x');
 
 %% Descomposición en cuadratura
@@ -98,7 +111,6 @@ h1 = subplot(211), plot(t,I_FIR,t,Q_FIR), grid, title('I Q FIR sin LPF')
 I_IIR = signal_filtered_IIR .* cos(2*pi*fpwm*t);
 Q_IIR = signal_filtered_IIR .* sin(2*pi*fpwm*t);
 h2 = subplot(212), plot(t,I_IIR,t,Q_IIR), grid, title('I Q IIR sin LPF')
-
 linkaxes([h1 h2],'x')
 
 %% DEMODULATION
@@ -109,11 +121,11 @@ load('QPSK_LPF_FIR_pf1MHz_fc5MHz_at60dB.mat');
 
 
 %Filtro las señales I Q
-I_FIR_filtered = filter(QPSK_LPF_FIR_pf1MHz_fc5MHz_at60dB,I_FIR);
-Q_FIR_filtered = filter(QPSK_LPF_FIR_pf1MHz_fc5MHz_at60dB,Q_FIR);
+I_FIR_filtered = filter(LPF,I_FIR);
+Q_FIR_filtered = filter(LPF,Q_FIR);
 
-I_IIR_filtered = filter(QPSK_LPF_FIR_pf1MHz_fc5MHz_at60dB,I_IIR);
-Q_IIR_filtered = filter(QPSK_LPF_FIR_pf1MHz_fc5MHz_at60dB,Q_IIR);
+I_IIR_filtered = filter(LPF,I_IIR);
+Q_IIR_filtered = filter(LPF,Q_IIR);
 
 figure
 h1 = subplot(211); plot(t,I_FIR_filtered,t,Q_FIR_filtered,'linewidth',2.5), grid, title('I Q con FIR Filtrado')
@@ -122,11 +134,11 @@ h2 = subplot(212); plot(t,I_IIR_filtered,t,Q_IIR_filtered,'linewidth',2.5), grid
 %% Genero la señal en cuadratura que va al demodulador
 iq_FIR = (I_FIR_filtered) + 1i * (Q_FIR_filtered);
 iq_IIR = (I_IIR_filtered) + 1i * (Q_IIR_filtered);
-message_FIR = pskdemod(iq_FIR, 4);
-message_IIR = pskdemod(iq_IIR, 4);
+message_FIR = qamdemod(iq_FIR, 16);
+message_IIR = qamdemod(iq_IIR, 16);
 
 scatterplot(iq_FIR);        title('I+Q FIR');
-scatterplot(iq_IIR);        title('I+Q IIR');
+%scatterplot(iq_IIR);        title('I+Q IIR');
 % subplot(211), scatterplot(message_FIR);	title('Mensaje');
 % subplot(212), scatterplot(message_IIR);	title('Mensaje');
 

@@ -1,9 +1,9 @@
-clc; ; close all;
+clc; ; close all; 
 
 %% SIMULATION PARAMETERS
 DATA_BITS = 1;
 SYMBOLS = 2^DATA_BITS;
-SYMBOL_RATE = 100;
+SYMBOL_RATE = 10;
 UPSAMPLING = 100;
 DATA_CYCLES = 10;
 
@@ -107,9 +107,9 @@ end
 
 %% PLOT
 figure(1);
-subplot(311);   plot(t, carrier);       title("carrier");
-subplot(312);   plot(data);             title("data");
-subplot(313);   plot(t, bpsk);          title("bpsk");
+subplot(311);   plot(t, carrier);       title('carrier');
+subplot(312);   plot(data);             title('data');
+subplot(313);   plot(t, bpsk);          title('bpsk');
 
 
 %% FREQUENCY
@@ -122,8 +122,8 @@ bpsk_spec = abs(fft(double(bpsk)))/N;
 
 %% PLOT
 figure(2);
-subplot(211);   plot(f(1:N/2), mag2db(carrier_spec(1:N/2)));    title("carrier");
-subplot(212);   plot(f(1:N/2), mag2db(bpsk_spec(1:N/2)));       title("bpsk");
+subplot(211);   plot(f(1:N/2), mag2db(carrier_spec(1:N/2)));    title('carrier');
+subplot(212);   plot(f(1:N/2), mag2db(bpsk_spec(1:N/2)));       title('bpsk');
 
 
 %% FILTER
@@ -137,18 +137,18 @@ bpsk_filtered_spec = abs(fft(bpsk_filtered))/N;
 %% PLOT
 figure(3);
 subplot(211);   plot(t, bpsk_filtered);
-    title("bpsk filtered");
+    title('bpsk filtered');
 subplot(212);   plot(f, bpsk_filtered_spec);
-    title("bpsk filtered - spect");
+    title('bpsk filtered - spect');
     
 
 %% DEMODULATION
-bpsk_demod = pskdemod(bpsk_filtered, 4);
+bpsk_demod = pskdemod(bpsk_filtered, 2);
 bpsk_demod_spec = mag2db(abs(fft(bpsk_demod))/N);
 
 
 %% PLOT
-scatterplot(bpsk_demod);	title("bpsk demod");
+scatterplot(bpsk_demod);	title('bpsk demod');
 
 
 

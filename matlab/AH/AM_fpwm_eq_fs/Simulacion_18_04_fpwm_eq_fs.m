@@ -3,7 +3,7 @@ clear, clc, close all;
 fc = 1e6;   Tc = 1/fc;
 fs = 50e3;      Ts = 1/fs;
 
-N = 10;
+N = 8;
 COMB = 2^N;
 
 f_clk = fs*COMB;   T_clk = 1/f_clk;
@@ -15,7 +15,7 @@ f_mod = 1e3;    w_mod = 2*pi*f_mod;     T_mod = 1/f_mod;
 
 t = 0: Ts: Ncyc * T_mod-Ts;
 
-signal = cos(w_mod*t);% + cos(5*w_mod*t);
+signal = cos(w_mod*t);% + 2*cos(5*w_mod*t);
 
 sig_Nbits = signal + abs(min(signal));
 signal_2 = sig_Nbits / max(sig_Nbits) *(2^N-1);

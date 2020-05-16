@@ -35,9 +35,13 @@ t = (0:N-1)*clk_period;
 carrier = (square(carrier_freq*2*pi*t) + 1)/2;
 
 % data from GNURadio
-data_an = data_amp * (sin(data_freq*2*pi*t) + 1);
-data_quant = max(data_an*2) / (2^DATA_BITS -1);
-data_dig = uint8(round(data_an / data_quant));
+data_an = data_amp * (sin(data_freq*2*pi*t) + sin(4000*2*pi*t));
+data_an = data_an - min(data_an);
+data_quant = max(data_an*2) / (2^DATA_BITS-1);
+% Modificacion hecha por el ando
+% data_dig = uint8(round(data_an / data_quant));
+data_dig = uint8(round(data_an / max(data_an) * (2^DATA_BITS-1)));
+
 
 % PWM from data_dig
 % TEST 01 -> pwm_freq is clk_freq * 2^DATA_BITS
@@ -53,6 +57,8 @@ for i = 1:PWM_STEPS:N
         end
     end
 end
+
+pwm = pwm(1:N);
 
 % % PWM from data_dig
 % % TEST 02 -> pwm_freq is data_samp_freq
@@ -73,10 +79,10 @@ end
 
 %% PLOT
 figure(1);
-subplot(221);   plot(t, carrier);       title("carrier");
-subplot(222);   plot(t, data_an);       title("data - analog");
-subplot(223);   plot(t, data_dig);      title("data - digital");
-subplot(224);   plot(t, pwm);           title("PWM");
+subplot(221);   plot(t, carrier);       title('carrier');
+subplot(222);   plot(t, data_an);       title('data - analog');
+subplot(223);   plot(t, data_dig);      title('data - digital');
+subplot(224);   plot(t, pwm);           title('PWM');
 
 
 %% FREQUENCY
@@ -91,10 +97,10 @@ pwm_spec = abs(fft(double(pwm)))/N;
 
 %% PLOT
 figure(2);
-subplot(221);   plot(f(1:N/2), mag2db(carrier_spec(1:N/2)));    title("carrier");
-subplot(222);   plot(f(1:N/2), mag2db(data_an_spec(1:N/2)));    title("data - analog");
-subplot(223);   plot(f(1:N/2), (data_dig_spec(1:N/2)));         title("data - digital");
-subplot(224);   plot(f(1:N/2), (pwm_spec(1:N/2)));              title("PWM");
+subplot(221);   plot(f(1:N/2), mag2db(carrier_spec(1:N/2)));    title('carrier');
+subplot(222);   plot(f(1:N/2), mag2db(data_an_spec(1:N/2)));    title('data - analog');
+subplot(223);   plot(f(1:N/2), (data_dig_spec(1:N/2)));         title('data - digital');
+subplot(224);   plot(f(1:N/2), (pwm_spec(1:N/2)));              title('PWM');
 
 
 
@@ -116,13 +122,13 @@ am_filtered_spec = abs(fft(am_filtered))/N;
 
 figure(3);
 subplot(211);   plot(f, am_filtered);
-    title("am filtered");
+    title('am filtered');
     
 subplot(212);   plot(f(.5*carrier_freq/res_freq : 1.5*carrier_freq/res_freq), ...
         mag2db(am_filtered_spec(.5*carrier_freq/res_freq : 1.5*carrier_freq/res_freq)));
-    title("am filtered - spec");
+    title('am filtered - spec');
 % subplot(212);   plot(f, mag2db(am_filtered_spec));
-%     title("am filtered - spec");
+%     title('am filtered - spec');
 
 
 %% DEMODULATION
@@ -132,12 +138,74 @@ am_demod_spec = mag2db(abs(fft(am_demod))/N);
 
 %% PLOT
 figure(4);
-subplot(311);   plot(t, am_demod);
-    title("am demod");
+subplot(311);   plot(t, am_demod*max(data_an)/max(am_demod));
+    title('am demod');
 subplot(312);   plot(f(1:N/2), am_demod_spec(1:N/2));
-    title("am demod - full spec");
+    title('am demod - full spec');
 subplot(313);   plot(f(1:4*data_freq/res_freq), am_demod_spec(1:4*data_freq/res_freq));
-    title("am demod - base band");
+    title('am demod - base band');
+
+
+%%
 
 
 
+figure
+subplot(231)
+plot(t, data_an), xlim([0, 2e-3]), ylim([-5 130]), grid on, 
+title('Analog data signal @ 1 kHz + 4kHz'), xlabel('Time'), ylabel('Amplitude')
+
+ax(1) = subplot(232)
+plot(t, data_an), xlim([0, 1e-3]), ylim([-5 130]), grid on, 
+title('Analog data signal @ 1 kHz + 4kHz'), xlabel('Time'), ylabel('Amplitude')
+
+subplot(233);   plot(f(1:N/2), mag2db(data_an_spec(1:N/2))); xlim([0 25e3]), grid on, 
+title('data - analog');
+
+subplot(234)
+plot(t, data_dig), xlim([0, 2e-3]),ylim([-5 69]), grid on, 
+title('Analog data signal @ 1 kHz + 4kHz'), xlabel('Time'), ylabel('Amplitude')
+
+subplot(236);   plot(f(1:N/2), (data_dig_spec(1:N/2))); xlim([0 25e3]), grid on,
+title('data - digital');
+
+ax(2) = subplot(235)
+plot(t, data_dig), xlim([0, 1e-3]),ylim([-5 69]), grid on, 
+title('Analog data signal @ 1 kHz + 4kHz'), xlabel('Time'), ylabel('Amplitude')
+linkaxes(ax,'x')
+
+
+
+
+
+figure
+subplot(4,2,[1 2])
+plot(t, carrier), xlim([0, 1e-6]), ylim([-0.2 1.2]), grid on, 
+title('Carrier signal @ 10 MHz'), xlabel('Time'), ylabel('Amplitude')
+
+ax2(1) = subplot(423);   
+plot(t, pwm), ylim([-0.2 1.2]), grid on,           
+title('PWM');
+
+ax2(2) = subplot(425)
+plot(t, data_an), ylim([-5 130]), grid on, 
+
+ax3(1) = subplot(424);   
+plot(t, pwm), ylim([-0.2 1.2]), grid on,           
+title('PWM');
+
+ax3(2) = subplot(426)
+plot(t, data_an), ylim([-5 130]), grid on, 
+
+subplot(4,2,[7 8])
+plot(f(1:N/2), (pwm_spec(1:N/2)));
+
+
+linkaxes(ax3,'x')
+linkaxes(ax2,'x')
+
+
+
+% 
+% subplot(221);   plot(f(1:N/2), mag2db(carrier_spec(1:N/2)));    title('carrier');
+% subplot(224);   plot(f(1:N/2), (pwm_spec(1:N/2)));              title('PWM');
